@@ -1,10 +1,9 @@
 // This is the service worker file.
 
-const CACHE_NAME = 'prayer-times-cache-v1';
-// Add any files you want to cache for offline use here.
-// For a single-page app like this, caching the root is often enough.
+const CACHE_NAME = 'prayer-times-cache-v2'; // Updated cache name
 const urlsToCache = [
-  './' // This caches the index.html file at the root.
+  './', // This caches the index.html file at the root.
+  './index.html' // Explicitly cache index.html
 ];
 
 // Install event: opens a cache and adds the core files to it.
@@ -27,6 +26,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
