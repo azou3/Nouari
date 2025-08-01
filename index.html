@@ -12,6 +12,8 @@
     <!-- PWA Manifest & Theme -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#1a0505"/>
+    <link rel="apple-touch-icon" href="https://i.ibb.co/dKqg2r4/icon-192.png">
+
 
     <style>
         .digital-font { font-family: 'Orbitron', sans-serif; font-weight: 700; }
@@ -90,7 +92,6 @@
     let prayerTimesData = {};
     let currentSettings = { city: 'Algiers', color: 'yellow-glow', method: 3, preNotificationMins: 10, adhanRepeats: 1 };
     let mainInterval;
-    let adhanRepeatInterval;
     let deferredPrompt;
 
     async function fetchPrayerTimes(settings) {
@@ -177,7 +178,7 @@
              navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, {
                     body: options.body,
-                    icon: 'https://placehold.co/192x192/8c5319/ffee80?text=🕌',
+                    icon: 'https://i.ibb.co/dKqg2r4/icon-192.png',
                     vibrate: [200, 100, 200]
                 });
             });
@@ -192,26 +193,26 @@
         if (!adhanSound) return;
 
         let repeatCount = currentSettings.adhanRepeats || 1;
-        dom.adhanRepeatCounter.textContent = `(التكرار ${repeatCount} من ${currentSettings.adhanRepeats})`;
+        dom.adhanRepeatCounter.textContent = `(التكرار 1 من ${repeatCount})`;
 
         const playAdhan = () => {
             dom.adhanPlayer.src = adhanSound;
             dom.adhanPlayer.play().catch(e => console.error("Audio play failed:", e));
         };
         
-        playAdhan(); // Play first time immediately
-        repeatCount--;
+        playAdhan(); 
+        let currentPlay = 1;
 
-        if (repeatCount > 0) {
-            adhanRepeatInterval = setInterval(() => {
-                if (repeatCount <= 0) {
-                    clearInterval(adhanRepeatInterval);
-                    return;
+        if (repeatCount > 1) {
+            dom.adhanPlayer.onended = () => {
+                if(currentPlay < repeatCount) {
+                    currentPlay++;
+                    dom.adhanRepeatCounter.textContent = `(التكرار ${currentPlay} من ${repeatCount})`;
+                    playAdhan();
+                } else {
+                    dom.adhanPlayer.onended = null;
                 }
-                playAdhan();
-                repeatCount--;
-                dom.adhanRepeatCounter.textContent = `(التكرار ${currentSettings.adhanRepeats - repeatCount} من ${currentSettings.adhanRepeats})`;
-            }, 60000); // Repeat every minute
+            };
         }
     }
 
@@ -392,7 +393,7 @@
         dom.adhanPanel.classList.add('hidden');
         dom.adhanPlayer.pause();
         dom.adhanPlayer.currentTime = 0;
-        if(adhanRepeatInterval) clearInterval(adhanRepeatInterval);
+        if(dom.adhanPlayer.onended) dom.adhanPlayer.onended = null;
     });
 
     document.addEventListener('DOMContentLoaded', () => {
